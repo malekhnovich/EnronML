@@ -343,47 +343,50 @@ kBestResults()
 
 
 def checkClassifiers(trainedFeatures,testFeatures):
+    classifier = 'dt'
     scaler = MinMaxScaler()
     kbest = SelectKBest(f_classif, k='all')
-    for classifier in classifiers:
-        if classifier =='dt':
-            parameters = {'min_samples_split':[10,15,20,25],
-                          'presort':[True,False],
-                          'max_features':['auto','sqrt']
-                          }
-        elif classifier == "svc":
-            parameters = {'C':[5,7,9],
-                          'gamma':[5,7,9],
-                          'kernel':['linear','rbf']
-                          }
-        elif classifier =="kneighbors":
-            parameters = {'n_neighbors':[5],
-                          'weights':['uniform','distance']
-                          }
-        elif classifier =="gnb":
-            parameters = { 'priors':[None]
-                         }
+    if classifier =='dt':
+        parameters = {'min_samples_split':[10,15,20,25],
+                      'presort':[True,False],
+                      'max_features':['auto','sqrt']
+                      }
+    elif classifier == "svc":
+        parameters = {'C':[5,7,9],
+                      'gamma':[5,7,9],
+                      'kernel':['linear','rbf']
+                      }
+    elif classifier =="kneighbors":
+        parameters = {'n_neighbors':[5],
+                      'weights':['uniform','distance']
+                      }
+    elif classifier =="gnb":
+        parameters = { 'priors':[None]
+                     }
+    print("Classifier : ",classifiers[classifier])
+    print("parameter : ",parameters)
+    gs = Pipeline([('scaling', scaler), ('kbest', kbest), (classifier, classifiers[classifier])])
+    gclf = GridSearchCV(gs,parameters,scoring='f1')
+    gclf.fit(features,labels)
+    clf = gclf.best_estimator_
+    prediction = gs.predict(features)
+    print("The accuracy score of "+classifier+" is "+str(accuracy_score(prediction,labels)))
+    print()
 
-        gclf = GridSearchCV(classifiers[classifier],parameters)
-        gs = Pipeline([('scaling',scaler),('kbest',kbest),('DecisionTree',gclf)])
-        gs.fit(trainedFeatures,labels_train)
-        prediction = gs.predict(testFeatures)
-        print("The accuracy score of "+classifier+" is "+str(accuracy_score(labels_test,prediction)))
-        print()
-        clf = gclf.best_estimator_
-        print("best estimator returns",clf)
-        classifierResults[classifier]=clf
+    print("best estimator returns",clf)
 
-    return classifierResults
 
-checkClassifiers(pca_x_values[0],pca_x_values[1])
+    return clf
+
+
 print("Now lets see the results with Non-pca Set")
 print("\n")
-classifierResults = checkClassifiers(features_train,features_test)
+#classifierResults = checkClassifiers(features_train,features_test)
 
 
 
-clf = classifierResults["kneighbors"]
+#clf = classifierResults["kneighbors"]
+
 
 
 def checkKNeighbors():
@@ -419,6 +422,20 @@ features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
 
+
+
+
+
+
+def accuracyKNeighbors():
+    clf = KNeighborsClassifier(n_neighbors=5)
+    clf.fit(features_train,labels_train)
+    prediction = clf.predict(features_test)
+    #
+    print("Using K Means Neighbors the accuracy on the labels is ",accuracy_score(labels_test,prediction))
+    return clf
+
+
 params = {}
 '''
 def accuracyGNB(features_train,features_test,labels_train,labels_test):
@@ -433,14 +450,6 @@ def accuracyGNB(features_train,features_test,labels_train,labels_test):
 
 
 
-
-def accuracyKNeighbors():
-    clf = KNeighborsClassifier(n_neighbors=5)
-    clf.fit(features_train,labels_train)
-    prediction = clf.predict(features_test)
-    #
-    print("Using K Means Neighbors the accuracy on the labels is ",accuracy_score(labels_test,prediction))
-    return clf
 
 
 
@@ -478,7 +487,7 @@ def accuracySVC(features_train,features_test,labels_train,labels_test):
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-
+clf = accuracyKNeighbors()
 
 
 dump_classifier_and_data(clf, my_dataset, features_list)
