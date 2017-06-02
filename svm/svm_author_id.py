@@ -20,10 +20,32 @@ from email_preprocess import preprocess
 features_train, features_test, labels_train, labels_test = preprocess()
 
 
-
+from sklearn import svm
 
 #########################################################
 ### your code goes here ###
+
+#creating the classifier for the SVM
+
+features_train = features_train[:len(features_train)/100]
+labels_train = labels_train[:len(labels_train)/100]
+
+clf=svm.SVC(kernel="linear")
+
+#fit the svm with the features (X) and labels(Y)
+clf.fit(features_train, labels_train)
+
+#making the prediction
+prediction = clf.predict(features_test)
+
+t0 = time()
+#importing accuracy
+
+from sklearn.metrics import accuracy_score
+#printing the accuracy value
+print("The accuracy score is "+str(((accuracy_score(prediction,labels_test)))))
+
+print("training time:", round(time()-t0, 3), "s")
 
 #########################################################
 

@@ -15,6 +15,14 @@ sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 
 
+#importing min max scaler
+
+from sklearn.preprocessing import MinMaxScaler
+
+
+
+
+
 
 
 def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature 1", f2_name="feature 2"):
@@ -22,6 +30,7 @@ def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature
 
     ### plot each cluster with a different color--add more colors for
     ### drawing more than five clusters
+
     colors = ["b", "c", "k", "m", "g"]
     for ii, pp in enumerate(pred):
         plt.scatter(features[ii][0], features[ii][1], color = colors[pred[ii]])
@@ -43,15 +52,68 @@ data_dict = pickle.load( open("../final_project/final_project_dataset.pkl", "r")
 ### there's an outlier--remove it! 
 data_dict.pop("TOTAL", 0)
 
+#print(data_dict)
+#finding the minimum value in datadict for exercised_stock_options
 
-### the input features we want to use 
+def findMinESC():
+    min = 1000000000
+    for entry in data_dict:
+        if data_dict[entry]["exercised_stock_options"] <min:
+            min = data_dict[entry]["exercised_stock_options"]
+    return min
+
+print("the minimum exercised_stock_option:",findMinESC())
+
+def findMaxESC():
+    max = 0
+    for entry in data_dict:
+        if data_dict[entry]["exercised_stock_options"]!="NaN":
+            if data_dict[entry]["exercised_stock_options"]>max:
+                max = data_dict[entry]["exercised_stock_options"]
+    return max
+
+print("the maximum exercised_stock_options:",findMaxESC())
+
+def findMaxSalary():
+    max = 0
+    for entry in data_dict:
+        if data_dict[entry]['salary']!='NaN':
+            if data_dict[entry]['salary']>max:
+                max = data_dict[entry]['salary']
+    return max
+
+print("the max salary is ",findMaxSalary())
+
+def findMinSalary():
+    min = 100000000000
+    for entry in data_dict:
+        if data_dict[entry]['salary']!='NaN':
+            if data_dict[entry]['salary']<min:
+                min = data_dict[entry]['salary']
+    return min
+
+print("the minimum salary is ",findMinSalary())
+
+### the input features we want to use
 ### can be any key in the person-level dictionary (salary, director_fees, etc.) 
 feature_1 = "salary"
 feature_2 = "exercised_stock_options"
+feature_3 = "total_payments"
 poi  = "poi"
 features_list = [poi, feature_1, feature_2]
 data = featureFormat(data_dict, features_list )
 poi, finance_features = targetFeatureSplit( data )
+
+#putting a min_max_scaler on "salary" and "excercised_stock_options"
+
+min_max_scaler = MinMaxScaler()
+
+
+
+x_train_minmax = min_max_scaler.fit_transform(finance_features, [200000,1000000])
+
+min_max_scaler.fit
+print(x_train_minmax)
 
 
 ### in the "clustering with 3 features" part of the mini-project,
@@ -64,6 +126,14 @@ plt.show()
 
 ### cluster here; create predictions of the cluster labels
 ### for the data and store them to a list called pred
+
+#import kmeans
+from sklearn.cluster import KMeans
+
+#create classifier
+clf = KMeans(n_clusters=2)
+clf.fit(finance_features)
+pred = clf.predict(finance_features)
 
 
 
